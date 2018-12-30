@@ -1,61 +1,79 @@
-from flask import Flask, render_template
-import sqlite3
+from flask import Flask, render_template, request
+from send_email import send_email
+import csv
+from database import Data
+import config
 
-app=Flask(__name__)
+app = Flask(__name__)
+db = Data(config.database)
 
-@app.route('/')
+
+@app.route("/")
 def login():
     return render_template("login.html")
 
-@app.route('/home')
+
+@app.route("/home")
 def home():
     return render_template("home.html")
+    radioid = request.form["radio_id"]
+    serialnum = request.form["serial_num"]
 
-@app.route('/about')
+@app.route("/about")
 def about():
     return render_template("about.html")
 
-def view_command():
-    for row in database.view():
-        print('hello')
 
-#if __name__=="__main__":
-#    app.run(debug=True)
+@app.route("/data_exchange")
+def data_exchange():
+    return render_template("data_exchange.html")
 
 
-def create_table():
-    conn=sqlite3.connect("lite.db")
-    cur=conn.cursor()
-    cur.execute("""CREATE TABLE IF NOT EXISTS provisioner ('radio_id_' TEXT,
-        'serial_number_' TEXT, 'alias_' TEXT, 'security_' TEXT, 'capability_' TEXT,
-        'site_' TEXT, 'primary_tg_' TEXT)""")
-    conn.commit()
-    conn.close()
-
-def view():
-    conn=sqlite3.connect("lite.db")
-    cur=conn.cursor()
-    cur.execute("SELECT * FROM provisioner")
-    rows=cur.fetchall()
-    conn.close()
-    return rows
-
-def insert(radioid, serialnum, alias, security, capability, site, primarytg):
-    conn=sqlite3.connect("lite.db")
-    cur=conn.cursor()
-    cur.execute("INSERT INTO provisioner VALUES (?,?,?,?,?,?,?)", (radioid, serialnum, alias, security, capability, site, primarytg))
-    conn.commit()
-    conn.close()
-
-def update(radioid, serialnum, alias):
-    conn=sqlite3.connect("lite.db")
-    cur=conn.cursor()
-    cur.execute("UPDATE provisioner SET serial_number_=?, alias_=? WHERE radio_id_=?", (serialnum, alias, radioid))
-    conn.commit()
-    conn.close()
+@app.route("/success", methods=["POST"])
+def success():
+    if request.method == "POST":
+        radio_id = request.form["radio_id"]
+        alias = request.form["alias"].upper()
+        serial = request.form["serial_num"].upper()
+        agency = request.form["agency"].upper()
+        # TODO need a filter for agency to update capability/radio profile assignment
+        #Data.update_data(db, alias, radio_id)
+        Data.insert_data(db, radio_id, serial, alias, agency)
+        send_email("medicup@gmail.com", "this is a test")
+        return "no hits"
 
 
-create_table()
-insert("4800000", "427xxx123", "chief1", "1", "1001", "1", "1002")
-#update('480', '999', "homerun")
-print(view())
+@app.route("/data_exchange", methods=["POST"])
+def upload():
+    global file
+    if request.method == "POST":
+        file = request.files["file"]
+        file.save("uploaded" + file.filename)
+        with open("uploaded" + file.filename, "a") as f:
+            f.write("This was added later!")
+        print(file)
+        print(type(file))
+        return render_template("data_exchange.html", btn="download.html")
+
+
+def read_file(conn):
+    with open(config.upload_file, newline="") as f:
+        reader = csv.reader(open(config.upload_file, newline=''), delimiter=',', quotechar='|')
+        #radio_list = list(reader)
+        cur = conn.cursor()
+        for row in reader:
+            print(','.join(row))
+        # try:
+        #     cur.executemany(
+        #         "INSERT INTO provisioner VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
+        #         radio_list,
+        #     )
+        #     conn.commit()
+        # except ValueError as e:
+        #     print(e)
+
+
+if __name__ == "__main__":
+
+    app.debug = True
+    app.run()

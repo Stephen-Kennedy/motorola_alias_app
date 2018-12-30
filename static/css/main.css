@@ -88,3 +88,27 @@ h3 {
   color: #444;
   text-decoration: none;
 }
+
+.container form {
+  margin: 30px;
+}
+
+.container input {
+  width: 350px;
+  height: 15px;
+  font-size: 15px;
+  margin: 2px;
+  padding: 20px;
+}
+
+.container button {
+  width: 70px;
+  height: 30px;
+  background-color: steelblue;
+  margin: 4px;
+}
+
+.message {
+  font-size: 15px;
+  color: #B22222;
+}

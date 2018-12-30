@@ -4,5 +4,14 @@
     <h1>My home page</h1>
     <p>This is a test website again</p>
     <p>This was added later</p>
+    </<div class="container">
+      <form action="{{url_for('success')}}" method="POST">
+        <input title="System ID" placeholder="Enter radio system ID" type="number" min="4800000", max="4899999" name="radio_id" required> <br>
+        <input title="Serial Number" placeholder="Enter the serial number" type="text"  name="serial_num" required> <br>
+        <input title="User Alias" placeholder="Enter the alias" type="text"  name="alias" required> <br>
+        <input title="Agency assignment" placeholder="Enter the agency" type="text"  name="agency" required> <br>
+        <button type="submit" name="button">Submit</button>
+      </form>
+    </div>
 </div>
 {% endblock %}
