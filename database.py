@@ -122,28 +122,35 @@ class Data:
             self.conn.commit()
         except ValueError as e:
             print(e)
+        #self.cur.close()
 
-    def update_data(self, data_value, alias):
+    def update_data(self, radio, alias):
         self.conn = sqlite3.connect(self.database)
         self.cur = self.conn.cursor()
-        values = (data_value, alias)
-        try:
-            self.cur.execute("UPDATE provisioner SET COL_02=? WHERE id_=?;", values)
-            print(values)
+
+        sql = """ UPDATE provisioner SET COL_02='{0}' WHERE id_ = {1}; """.format(alias, radio)
+
+        try:  # TODO fix search bug seach is working, but timing out after. looks like maybe http issue
+            print(sql)
+            self.cur.execute(sql)
             self.conn.commit()
         except ValueError as e:
             print(e)
 
-    def search_data(self, data_value):
+        self.cur.close()
+    def search_data(self, _id, _serial, _alias):
         self.conn = sqlite3.connect(self.database)
         self.cur = self.conn.cursor()
-        values = ("sample", data_value)
-        try:
-            self.cur.execute("UPDATE provisioner SET COL_02=? WHERE id_=?;", values)
-            print(values)
-            self.conn.commit()
+
+        sql = """ SELECT * FROM provisioner WHERE id_={0} OR COL_01 = '{1}' OR COL_02 = '{2}'; """.format(_id, _serial, _alias)
+
+        try: #TODO fix search bug seach is working, but timing out after. looks like maybe http issue
+            self.y = self.cur.execute(sql)
+            print (self.y.fetchall())
         except ValueError as e:
             print(e)
+            return
+        self.cur.close()
 
     def delete_data(self):
         print("delete data")
@@ -154,9 +161,16 @@ class Data:
         self.cur = self.conn.cursor()
         for row in self.cur.execute("SELECT * FROM provisioner"):
             print(row)
+        self.cur.close()
+
+
+
+
+# TODO db.create_table() # remove after testing.
+
 
 
 db = Data(config.database)
-# db.search_data()
-# TODO db.create_table() # remove after testing.
-# db.view_data()  # remove after testing
+# db.update_data(4801008,"48001011")
+db.search_data(4800001, "481CNP3902 2", "CHIEF2")
+# db.view_data()

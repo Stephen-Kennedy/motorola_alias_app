@@ -1,0 +1,16 @@
+{%extends "layout.html" %}
+{%block content%}
+<head>
+    <meta charset="UTF-8">
+    <title>Search Database</title>
+</head>
+<body>
+    <div class="search" >
+        <form action="/search" method="post">
+        <input type="text" name="search" value="{{ request.form.search }}"></br>
+            <div class="actions"><input type="submit" value="Search"> </div>
+        </form>
+    </div>
+
+</body>
+{% endblock %}
